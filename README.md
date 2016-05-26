@@ -1,7 +1,11 @@
 LinkedLists
+
 Stacks
+
 Queues
+
 Trees
+
 	Binary Trees
 	Generic Trees
 	Expression Trees
@@ -10,11 +14,14 @@ Trees
 	Balanced BST
 	AVL
 Priority Queues
+
 	Heaps
 	Binary Heaps
+	
 Disjoint Set ADT
 
 Graph Algorithms:
+
 	BFS
 	DFS
 	Topological sort --> to be done when implementing DAG problems
@@ -27,12 +34,20 @@ Graph Algorithms:
 		Kruskal
 
 Sorting Algorithms
+
 Searching Algorithms
+
 Selection Algorithms
+
 Symbol Table
+
 Hashing
+
 String Algorithms
+
 Greedy Algorithms
+
 Divide and Conquer
+
 Dynamic Programming
 
