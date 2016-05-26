@@ -107,6 +107,36 @@ class QueueCustom<T>{
 		return lc.length()==0?true:false;
 	}
 }
+class GraphEdge{
+	private int u;
+	private int v;
+	private int weight;
+	
+	GraphEdge(int u, int v, int w){
+		this.u=u;
+		this.v=v;
+		this.weight=w;
+	};
+	
+	public int getU(){
+		return u;
+	}
+	public void setU(int u){
+		this.u=u;
+	}
+	public int getV(){
+		return this.v;
+	}
+	public void setV(int v){
+		this.v=v;
+	}
+	public int getWeight(){
+		return this.weight;
+	}
+	public void setWeight(int w){
+		this.weight=w;
+	}
+}
 class GraphMatrix implements Graph{
 	private int[][] matrix;
 	private int size;
@@ -139,9 +169,6 @@ class GraphMatrix implements Graph{
 		}
 		return ans;
 	}
-	public void addEdge(int a, int b) {
-		matrix[a][b] = 1;
-	}
 	public boolean removeEdge(int a, int b) {
 		if(matrix[a][b]==1){
 			matrix[a][b] = 0;
@@ -169,20 +196,27 @@ class GraphMatrix implements Graph{
 	public int size() {
 		return this.size;
 	}
+	public void addEdge(GraphEdge e){
+		matrix[e.getU()][e.getV()] = e.getWeight();
+	}
+	@Override
+	public int getWeight(int a, int b) {
+		return matrix[a][b];
+	}
 }
 
 class GraphAdjacencyList implements Graph{
-	ArrayList<LinkedListNode<Integer>> holder;
+	ArrayList<LinkedListNode<GraphEdge>> holder;
 	private int size;
 	GraphAdjacencyList(int size){
 		this.size = size;
-		holder = new ArrayList<LinkedListNode<Integer>>(); 
+		holder = new ArrayList<LinkedListNode<GraphEdge>>(); 
 		for(int i=0;i<size;i++){
 			holder.add(null);
 		}
 	}
 	public int[] getAdjacentVerticesOf(int vertex) {
-		LinkedListNode<Integer> temp = holder.get(vertex);
+		LinkedListNode<GraphEdge> temp = holder.get(vertex);
 		int size=0,i=0;
 		while(temp!=null){
 			size++;
@@ -190,31 +224,31 @@ class GraphAdjacencyList implements Graph{
 		}
 		int[] ans = new int[size];temp=holder.get(vertex);
 		while(temp!=null){
-			ans[i] = temp.getData();i++;
+			ans[i] = temp.getData().getV();i++;
 			temp = temp.getNextNode();
 		}
 		return ans;
 	}
 
-	public void addEdge(int a, int b) {
-		if(holder.get(a)==null){
-			LinkedListNode<Integer> node = new LinkedListNode<Integer>(b, null); 
-			holder.set(a, node);
+	public void addEdge(GraphEdge e) {
+		if(holder.get(e.getU())==null){
+			LinkedListNode<GraphEdge> node = new LinkedListNode<GraphEdge>(new GraphEdge(e.getU(), e.getV(), e.getWeight()), null); 
+			holder.set(e.getU(), node);
 		}else{
-			LinkedListNode<Integer> temp = holder.get(a);
+			LinkedListNode<GraphEdge> temp = holder.get(e.getU());
 			while(temp.getNextNode()!=null){
 				temp = temp.getNextNode();
 			}
-			LinkedListNode<Integer> node = new LinkedListNode<Integer>(b, null); 
+			LinkedListNode<GraphEdge> node = new LinkedListNode<GraphEdge>(new GraphEdge(e.getU(), e.getV(), e.getWeight()), null); 
 			temp.setNextNode(node);
 		}
 	}
 
 	public boolean removeEdge(int a, int b) {
-		LinkedListNode<Integer> temp = holder.get(a);
+		LinkedListNode<GraphEdge> temp = holder.get(a);
 		int index=0;
 		while(temp.getNextNode()!=null){
-			if(temp.getNextNode().getData()==b){
+			if(temp.getNextNode().getData().getV()==b){
 				temp.setNextNode(temp.getNextNode().getNextNode());
 				return true;
 			}
@@ -223,9 +257,9 @@ class GraphAdjacencyList implements Graph{
 	}
 
 	public boolean isEdge(int a, int b) {
-		LinkedListNode<Integer> temp = holder.get(a);
+		LinkedListNode<GraphEdge> temp = holder.get(a);
 		while(temp!=null){
-			if(temp.getData()==b){
+			if(temp.getData().getV()==b){
 				return true;
 			}
 			temp = temp.getNextNode();
@@ -235,11 +269,11 @@ class GraphAdjacencyList implements Graph{
 
 	public void display() {
 		for(int i=0;i<holder.size();i++){
-			LinkedListNode<Integer> head = holder.get(i), temp=head;
+			LinkedListNode<GraphEdge> head = holder.get(i), temp=head;
 			System.out.print(i+" : ");
 			while(temp!=null){
 				if(temp!=head){System.out.print(" -> ");}
-				System.out.print(temp.getData());
+				System.out.print(temp.getData().getV());
 				temp = temp.getNextNode();
 			}
 			System.out.print('\n');
@@ -247,6 +281,16 @@ class GraphAdjacencyList implements Graph{
 	}
 	public int size() {
 		return this.size;
+	}
+	public int getWeight(int a, int b) {
+		LinkedListNode<GraphEdge> temp = holder.get(a);
+		while(temp!=null){
+			if(temp.getData().getV()==b){
+				return temp.getData().getWeight();
+			}
+			temp = temp.getNextNode();
+		}
+		return 0;
 	}
 }
 
@@ -337,14 +381,57 @@ public class GraphADT{
 		return ans;
 	}
 	
+	public static int[] shortestPathUnweighted(Graph g, int v) throws Exception{
+		QueueCustom<Integer> queue = new QueueCustom<Integer>();
+		
+		int[] weight = new int[g.size()];
+		int[] visited = new int[g.size()];
+		for(int i=0;i<weight.length;i++){weight[i] = Integer.MAX_VALUE;}
+		weight[v]=0;
+		queue.enQueue(v);
+		while(!queue.isEmpty()){
+			int poped = queue.deQueue();
+			visited[poped]=1;
+			int[] adjVertices = g.getAdjacentVerticesOf(poped);
+			for(int i=0;i<adjVertices.length;i++){
+				if(weight[adjVertices[i]]>weight[poped]+1){
+					weight[adjVertices[i]] = weight[poped]+1;
+				}
+				if(visited[adjVertices[i]]==0){	
+					queue.enQueue(adjVertices[i]);
+					visited[adjVertices[i]]=1;
+				}
+			}
+		}
+		return weight;
+	}
+	public static int[] dijkstra(Graph g, int v) throws Exception{
+		int[] weight=new int[g.size()];
+		int[] parent=new int[g.size()];
+		for(int i=1;i<weight.length;i++){weight[i]=Integer.MAX_VALUE;}
+		QueueCustom<Integer> queue = new QueueCustom<Integer>();
+		queue.enQueue(v);
+		while(!queue.isEmpty()){
+			int poped=queue.deQueue();
+			int[] adjVertices = g.getAdjacentVerticesOf(poped);
+			for(int i=0;i<adjVertices.length;i++){
+				if(weight[adjVertices[i]]>weight[poped] + g.getWeight(poped,adjVertices[i])){
+					weight[adjVertices[i]] = weight[poped] + g.getWeight(poped,adjVertices[i]);
+					parent[adjVertices[i]] = poped;
+				}
+				queue.enQueue(adjVertices[i]);
+			}
+		}
+		return weight; 
+	}
 	public static void main(String[] args) throws Exception{
 		Graph gm = new GraphMatrix(4);
 //		Graph gm = new GraphAdjacencyList(4);
-		gm.addEdge(0, 1);
-		gm.addEdge(0, 3);
-		gm.addEdge(1, 2);
-		gm.addEdge(2, 0);
-		gm.addEdge(2, 3);
+		gm.addEdge(new GraphEdge(0,1,1));
+		gm.addEdge(new GraphEdge(0,3,1));
+		gm.addEdge(new GraphEdge(1,2,1));
+		gm.addEdge(new GraphEdge(2,0,1));
+		gm.addEdge(new GraphEdge(2,3,1));
 		System.out.println("Graph representation:");
 		gm.display();
 		System.out.println("Adjecent vertices:");
@@ -370,15 +457,15 @@ public class GraphADT{
 		
 		System.out.println("DAG:");
 		Graph dag = new GraphAdjacencyList(8);
-		dag.addEdge(0, 3);
-		dag.addEdge(1, 3);
-		dag.addEdge(1, 4);
-		dag.addEdge(2, 4);
-		dag.addEdge(2, 7);
-		dag.addEdge(3, 5);
-		dag.addEdge(3, 6);
-		dag.addEdge(3, 7);
-		dag.addEdge(4, 6);
+		dag.addEdge(new GraphEdge(0,3,1));
+		dag.addEdge(new GraphEdge(1,3,1));
+		dag.addEdge(new GraphEdge(1,4,1));
+		dag.addEdge(new GraphEdge(2,4,1));
+		dag.addEdge(new GraphEdge(2,7,1));
+		dag.addEdge(new GraphEdge(3,5,1));
+		dag.addEdge(new GraphEdge(3,6,1));
+		dag.addEdge(new GraphEdge(3,7,1));
+		dag.addEdge(new GraphEdge(4,6,1));
 		dag.display();
 		
 		System.out.println("Topological Sort of DAG:");
@@ -387,18 +474,46 @@ public class GraphADT{
 		
 		System.out.println("DAG2:");
 		Graph dag2 = new GraphAdjacencyList(8);
-		dag2.addEdge(7, 6);
-		dag2.addEdge(6, 5);
-		dag2.addEdge(5, 4);
-		dag2.addEdge(4, 3);
-		dag2.addEdge(3, 2);
-		dag2.addEdge(2, 1);
-		dag2.addEdge(1, 0);
+		dag2.addEdge(new GraphEdge(7,6,1));
+		dag2.addEdge(new GraphEdge(6,5,1));
+		dag2.addEdge(new GraphEdge(5,4,1));
+		dag2.addEdge(new GraphEdge(4,3,1));
+		dag2.addEdge(new GraphEdge(3,2,1));
+		dag2.addEdge(new GraphEdge(2,1,1));
+		dag2.addEdge(new GraphEdge(1,0,1));
 		dag2.display();
 		
 		System.out.println("Topological Sort of DAG:");
 		int[] topologicalOrder2 = GraphADT.topologicalSort(dag2);
 		GraphADT.printArray(topologicalOrder2);
+		
+		System.out.println("Shortest path in unweighted graph: ");
+		Graph ga = new GraphAdjacencyList(7);
+		ga.addEdge(new GraphEdge(0,1,1));
+		ga.addEdge(new GraphEdge(0,3,1));
+		ga.addEdge(new GraphEdge(1,3,1));
+		ga.addEdge(new GraphEdge(1,4,1));
+		ga.addEdge(new GraphEdge(2,0,1));
+		ga.addEdge(new GraphEdge(2,5,1));
+		ga.addEdge(new GraphEdge(3,5,1));
+		ga.addEdge(new GraphEdge(3,6,1));
+		ga.addEdge(new GraphEdge(4,6,1));
+		ga.addEdge(new GraphEdge(6,5,1));
+		ga.display();
+		int[] weights = GraphADT.shortestPathUnweighted(ga, 0);
+		GraphADT.printArray(weights);
+		
+		System.out.println("Dijkstra Algorithm:");
+		Graph g2 = new GraphAdjacencyList(5);
+		g2.addEdge(new GraphEdge(0,2,1));
+		g2.addEdge(new GraphEdge(0,1,4));
+		g2.addEdge(new GraphEdge(1,4,4));
+		g2.addEdge(new GraphEdge(2,1,2));
+		g2.addEdge(new GraphEdge(2,3,4));
+		g2.addEdge(new GraphEdge(3,4,4));
+		g2.display();
+		int[] weights2=GraphADT.dijkstra(g2, 0);
+		GraphADT.printArray(weights2);
 		
 	}
 	
