@@ -1,6 +1,12 @@
 package graphs;
 
 import java.util.ArrayList;
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Map;
+import java.util.PriorityQueue;
+import java.util.Set;
 class LinkedListNode<T>{
 	private T data;
 	private LinkedListNode<T> nextNode;
@@ -424,6 +430,43 @@ public class GraphADT{
 		}
 		return weight; 
 	}
+	public static Graph prims(Graph g, int s){
+		Graph mst = new GraphAdjacencyList(g.size());
+		Set<Integer> reachSet = new HashSet<Integer>();
+		Set<Integer> unReachSet = new HashSet<Integer>();
+		reachSet.add(0);
+		
+		for(int i=1;i<g.size();i++){
+			unReachSet.add(i);
+		}
+		class EdgeCompare implements java.util.Comparator<GraphEdge>{
+			public int compare(GraphEdge o1, GraphEdge o2) {
+				if(o1.getWeight() <= o2.getWeight()){
+					return -1;
+				}else{
+					return 1;
+				}
+			};
+		}
+		PriorityQueue<GraphEdge> pq = new PriorityQueue<GraphEdge>(10, new EdgeCompare());
+		int u=0;
+		while(!unReachSet.isEmpty()){
+			int[] adjVertices = g.getAdjacentVerticesOf(u);
+			
+			for(int i=0;i<adjVertices.length;i++){
+				if(unReachSet.contains(adjVertices[i])){
+					pq.add(new GraphEdge(u, adjVertices[i], g.getWeight(u, adjVertices[i])));	
+				}
+				
+			}
+			GraphEdge poped = pq.remove();
+			mst.addEdge(new GraphEdge(poped.getU(), poped.getV(), poped.getWeight()));
+			u=poped.getV();
+			unReachSet.remove(u);
+			reachSet.add(u);
+		}
+		return mst;
+	}
 	public static void main(String[] args) throws Exception{
 		Graph gm = new GraphMatrix(4);
 //		Graph gm = new GraphAdjacencyList(4);
@@ -515,6 +558,9 @@ public class GraphADT{
 		int[] weights2=GraphADT.dijkstra(g2, 0);
 		GraphADT.printArray(weights2);
 		
+		System.out.println("Prims algorithm MST:");
+		Graph mst = GraphADT.prims(g2, 0);
+		mst.display();
 	}
 	
 	
