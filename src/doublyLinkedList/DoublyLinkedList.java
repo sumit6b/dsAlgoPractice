@@ -45,9 +45,11 @@ public class DoublyLinkedList {
 			for(int i =0;i<position-1;i++){
 				temp = temp.getNextNode();
 			}
-			DLLNode dll =  new DLLNode(data, temp, temp.getNextNode());
-			temp.getNextNode().setPrevNode(dll);
-			temp.setNextNode(dll);
+			DLLNode deletedNode = temp.getNextNode();
+			temp.setNextNode(deletedNode.getNextNode());
+			deletedNode.getNextNode().setPrevNode(temp);
+			deletedNode.setNextNode(null);
+			deletedNode.setPrevNode(null);
 		}
 	}
 	public void print(){
