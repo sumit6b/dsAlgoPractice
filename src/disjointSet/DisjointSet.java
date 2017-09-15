@@ -22,6 +22,9 @@ public class DisjointSet {
 	private int sizeOf(int index){
 		return sizeArray[index];
 	}
+	public int rootOf(int index){
+		return find(index, index);
+	}
 	public void union(int a, int b){
 		if(a>rootArray.length || b>rootArray.length){
 			System.out.println("Not a good value");
@@ -36,7 +39,7 @@ public class DisjointSet {
 			}
 		}
 	}
-	public boolean checkIfJoint(int a, int b){
+	public boolean isConnected(int a, int b){
 		if(find(a, a)== find(b, b)){
 			return true;
 		}else{
@@ -65,9 +68,9 @@ public class DisjointSet {
 		ds.display();
 		ds.union(4, 3);
 		ds.display();
-		System.out.println(ds.checkIfJoint(0, 2));
-		System.out.println(ds.checkIfJoint(3, 2));
-		System.out.println(ds.checkIfJoint(0, 1));
-		System.out.println(ds.checkIfJoint(0, 4));
+		System.out.println(ds.isConnected(0, 2));
+		System.out.println(ds.isConnected(3, 2));
+		System.out.println(ds.isConnected(0, 1));
+		System.out.println(ds.isConnected(0, 4));
 	}
 }
