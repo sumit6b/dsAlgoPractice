@@ -1,0 +1,42 @@
+class Solution {
+  public String multiply(String num1, String num2) {
+    if(num1.equals("") || num2.equals("")) return "0";
+    if(num1.length()<num2.length()){
+      String t =  num2;
+      num2 = num1;
+      num1=t;
+    }
+    StringBuilder sb = new StringBuilder();
+    byte car=0;
+    byte[] rowc = new byte[num2.length()];
+    short res;
+    boolean allzero=true;
+    for(int i=0;i<num1.length()+(num2.length()-1); i++){
+      res=0;
+      for(int j=0;j<num2.length();j++){
+        byte mul = (byte) (((num1.length()-1-i+j)>=0 && (num1.length()-1-i+j)<num1.length()? (byte) num1.charAt(num1.length()-1-i+j) - 48: 0)
+                  * ((byte) num2.charAt(num2.length()-1-j) - 48)
+                  + rowc[j]);
+        rowc[j]= (byte) (mul/10);
+        res+=mul%10;
+        if(mul%10>0) allzero = false;
+      }
+      res+=car;
+      car=(byte) (res/10);
+      sb.append(res%10);
+    }
+
+    byte last = 0;
+    if(car>0){
+      last+=car;
+    }
+    if(rowc[num2.length()-1]>0){
+      last+=rowc[num2.length()-1];
+    }
+    if(last>0){
+      allzero = false;
+      sb.append(last);
+    }
+    return allzero? "0": sb.reverse().toString();
+  }
+}
